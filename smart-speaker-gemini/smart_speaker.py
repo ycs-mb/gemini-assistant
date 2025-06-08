@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """
 Smart Speaker with Google Gemini Integration
-macOS Voice Assistant Prototype
+Platform-independent implementation
 """
 
-DEBUG = True  # Set to False to disable debug logs
-
 import speech_recognition as sr
-import pyttsx3
 import google.generativeai as genai
 import threading
 import time
-import os
 import pygame
 import json
 from datetime import datetime
 from dotenv import dotenv_values
 import sys
-import math  # Needed for play_beep
+from platform_utils import PlatformAudio
+
+DEBUG = True  # Set to False to disable debug logs
 
 class GeminiSmartSpeaker:
     def __init__(self):
@@ -27,6 +25,10 @@ class GeminiSmartSpeaker:
         # Load environment variables
         env_vars = dotenv_values(".env")
         self.log("Environment variables loaded")
+        
+        # Initialize platform-specific audio
+        self.platform_audio = PlatformAudio()
+        self.log(f"Platform detected: {'Raspberry Pi' if self.platform_audio.is_raspberry_pi else 'Other'}")
         
         # Initialize Gemini AI
         api_key = env_vars.get("GEMINI_API_KEY")
@@ -38,12 +40,11 @@ class GeminiSmartSpeaker:
         
         # Initialize speech recognition
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        self.microphone = self.platform_audio.init_microphone(self.recognizer)
         self.log("Speech recognition initialized")
         
         # Initialize text-to-speech
-        self.tts_engine = pyttsx3.init()
-        self.configure_tts()
+        self.tts_engine = self.platform_audio.init_text_to_speech()
         
         # Initialize pygame for sound effects
         pygame.mixer.init()
@@ -55,69 +56,11 @@ class GeminiSmartSpeaker:
         self.conversation_history = []
         self.log(f"Wake words set: {self.wake_words}")
         
-        # Configure microphone
-        self.setup_microphone()
-        
         print("✅ Gemini Smart Speaker initialized successfully!")
 
     def log(self, message):
         if self.debug_enabled:
             print(f"[DEBUG] {message}")
-
-    def configure_tts(self):
-        """Configure text-to-speech settings"""
-        self.log("Configuring TTS engine...")
-        voices = self.tts_engine.getProperty('voices')
-        
-        # Try to find a good voice (prefer female voices for assistant)
-        preferred_voices = ['Samantha', 'Victoria', 'Fiona', 'Moira']
-        selected_voice = None
-        
-        for voice in voices:
-            for preferred in preferred_voices:
-                if preferred.lower() in voice.name.lower():
-                    selected_voice = voice
-                    break
-            if selected_voice:
-                break
-        
-        if not selected_voice and voices:
-            selected_voice = voices[0]  # Use first available voice
-        
-        if selected_voice:
-            self.tts_engine.setProperty('voice', selected_voice.id)
-            print(f"🎙️ Using voice: {selected_voice.name}")
-            self.log(f"TTS voice set to {selected_voice.name}")
-        
-        # Set speech rate and volume
-        self.tts_engine.setProperty('rate', 180)  # Speed of speech
-        self.tts_engine.setProperty('volume', 0.9)  # Volume level
-        self.log("TTS rate and volume configured.")
-
-    def setup_microphone(self):
-        """Setup and calibrate microphone"""
-        self.log("Setting up microphone...")
-        print("🎤 Setting up microphone...")
-        
-        # List available microphones
-        print("\nAvailable microphones:")
-        for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-            print(f"  {i}: {microphone_name}")
-        self.log("Microphone list printed.")
-        
-        # Adjust for ambient noise
-        print("\n🔧 Adjusting for ambient noise... Please stay quiet for 2 seconds.")
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=2)
-        self.log("Ambient noise adjusted.")
-        
-        # Set recognition settings
-        self.recognizer.energy_threshold = 300
-        self.recognizer.dynamic_energy_threshold = True
-        self.recognizer.pause_threshold = 0.8
-        
-        print("✅ Microphone setup complete!")
-        self.log("Microphone setup complete with thresholds configured.")
 
     def speak(self, text):
         """Convert text to speech"""
