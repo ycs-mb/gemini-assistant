@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+smart_speaker.py
+smart_speaker_gemini.egg-info/PKG-INFO
+smart_speaker_gemini.egg-info/SOURCES.txt
+smart_speaker_gemini.egg-info/dependency_links.txt
+smart_speaker_gemini.egg-info/requires.txt
+smart_speaker_gemini.egg-info/top_level.txt
