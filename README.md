@@ -14,6 +14,19 @@ Gemini Assistant is a prototype smart speaker powered by Google Gemini. It liste
 - An API key for Google Gemini (set `GEMINI_API_KEY` in a `.env` file)
 - Audio input/output working on your machine
 
+### Linux Requirements
+If you're on Linux, you'll need these additional packages:
+```bash
+# For audio and speech support
+sudo apt-get update
+sudo apt-get install python3-pyaudio portaudio19-dev
+sudo apt-get install espeak libasound2-dev
+sudo apt-get install pulseaudio
+
+# Start pulseaudio if not running
+pulseaudio --start
+```
+
 ## Installation
 ```bash
 # Clone the repository
@@ -46,8 +59,33 @@ Use `test_audio.sh` to test your microphone and text-to-speech setup before runn
 $ ./test_audio.sh
 ```
 
+### Linux Audio Troubleshooting
+If you encounter audio issues on Linux:
+
+1. Check if your microphone is detected:
+   ```bash
+   arecord -l
+   ```
+
+2. Test microphone recording:
+   ```bash
+   arecord -d 5 test.wav
+   ```
+
+3. Make sure PulseAudio is running:
+   ```bash
+   pulseaudio --check
+   pulseaudio --start  # if not running
+   ```
+
+4. Check audio playback:
+   ```bash
+   speaker-test -t wav
+   ```
+
 ## Repository Layout
 - `smart-speaker-gemini/smart_speaker.py` – main application code
+- `smart-speaker-gemini/platform_utils.py` - platform-specific audio handling
 - `smart-speaker-gemini/run.sh` – helper script to run the smart speaker
 - `smart-speaker-gemini/test_audio.sh` – test your audio configuration
 - `smart-speaker-gemini/pyproject.toml` – Python project definition
