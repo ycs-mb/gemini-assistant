@@ -20,8 +20,10 @@ Gemini Assistant is a prototype smart speaker powered by Google Gemini. It liste
 $ git clone <repo-url>
 $ cd gemini-assistant/smart-speaker-gemini
 
-# Install dependencies (requires uv or pip)
+# Install uv (if not already installed)
 $ pip install uv
+
+# Install dependencies (requires uv or pip)
 $ uv pip install -e .
 # or alternatively
 $ pip install google-generativeai pyaudio pygame python-dotenv pyttsx3 requests speechrecognition
