@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Smart Speaker with Google Gemini Integration
-macOS Voice Assistant Prototype
+Cross-platform Voice Assistant
 """
 
 DEBUG = True  # Set to False to disable debug logs
@@ -14,10 +14,12 @@ import time
 import os
 import pygame
 import json
+import platform
 from datetime import datetime
 from dotenv import dotenv_values
 import sys
 import math  # Needed for play_beep
+from platform_utils import PlatformAudio
 
 class GeminiSmartSpeaker:
     def __init__(self):
@@ -36,14 +38,18 @@ class GeminiSmartSpeaker:
         self.log("Gemini API configured")
         self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
         
+        # Initialize platform-specific audio
+        self.platform_audio = PlatformAudio()
+        self.log(f"Detected platform: {self.platform_audio.system}")
+        
         # Initialize speech recognition
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        self.microphone = self.platform_audio.init_microphone(self.recognizer)
         self.log("Speech recognition initialized")
         
         # Initialize text-to-speech
-        self.tts_engine = pyttsx3.init()
-        self.configure_tts()
+        self.tts_engine = self.platform_audio.init_text_to_speech()
+        self.log("Text-to-speech initialized")
         
         # Initialize pygame for sound effects
         pygame.mixer.init()
@@ -54,9 +60,6 @@ class GeminiSmartSpeaker:
         self.listening = False
         self.conversation_history = []
         self.log(f"Wake words set: {self.wake_words}")
-        
-        # Configure microphone
-        self.setup_microphone()
         
         print("✅ Gemini Smart Speaker initialized successfully!")
 
